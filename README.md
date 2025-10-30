@@ -52,6 +52,16 @@ Donde `:type` es el tipo de documento y `:document` es el número de documento. 
 - `E`: Extranjero.
 - `DNI`: Otro documento.
 
+El tipo de documento no distingue mayúsculas de minúsculas, por ejemplo, puede enviar la petición así:
+
+```bash
+GET /api/v1/saime/v/00000000
+```
+
+Donde `v` es el timpo de documento, que también puede ser `V` y `00000000` es el número de documento.
+
+
+
 ---
 
 ## Aplicaciones prácticas
