@@ -1,23 +1,22 @@
-# API para Consultas al SAIME
+# API de Consultas al SAIME
 
 ## Introducción
 
-Esta API fue desarrollada por **Código Entrópico** —anteriormente **Códigos del Futuro**—, un proyecto de **David E. Luna M.** orientado a la creación de herramientas que automaticen la integración de datos ciudadanos en sistemas digitales dentro del contexto venezolano.
+Esta API, desarrollada por **Código Entrópico** (anteriormente **Códigos del Futuro**) y liderada por **David E. Luna M.**, permite acceder a información ciudadana de manera rápida, precisa y estructurada en el contexto venezolano.
 
-El propósito principal de esta API es **proveer un punto de acceso unificado** que permita obtener información básica de identificación proveniente del SAIME (Servicio Administrativo de Identificación, Migración y Extranjería) de forma estructurada, precisa y legible por máquina.
+A través de un **parser interno**, convierte automáticamente el HTML oficial del SAIME a **JSON legible por máquinas**, listo para integrarse en cualquier sistema digital.
 
-A través de un **parser interno**, la API traduce el contenido HTML de la fuente oficial del SAIME a **formato JSON**, facilitando su consumo por aplicaciones externas.
-Por ejemplo, una respuesta típica puede tener el siguiente formato:
+Ejemplo de respuesta:
 
 ```json
 {
   "nationality": "V",
-  "document": ---,
+  "document": 00000000,
   "firstname": "---",
   "middlename": "---",
   "first_surname": "---",
   "second_surname": "---",
-  "birthdate": "---",
+  "birthdate": "01 de enero de 2002",
   "gender": "---",
   "deceased": false
 }
@@ -25,71 +24,62 @@ Por ejemplo, una respuesta típica puede tener el siguiente formato:
 
 ---
 
-## Requisitos mínimos
+## Requisitos
 
-Debe contar con:
-- PHP 8.2+ en adelante para poder utilizarlo.
+* PHP 8.2+
+* Acceso a Internet desde el servidor para consultar los datos del SAIME
+
+---
 
 ## Instalación
-
-Antes de usar la API debe proceder a instalar la herramienta escribiendo el siguiente comando:
 
 ```bash
 git clone git@github.com:dlunire/document-query.git
 ```
 
+---
+
 ## Uso básico
 
-Una vez haya instalado la herramienta en su servidor debe proceder a enviar la petición al servidor:
+**Ruta de la API:**
 
-```bash
+```http
 GET /api/v1/saime/:type/:document
 ```
 
-Donde `:type` es el tipo de documento y `:document` es el número de documento. Los valores soportados son los siguientes:
+* `:type` → Tipo de documento: `V` (Venezolano), `E` (Extranjero), `DNI` (Otro)
+* `:document` → Número de documento
 
-- `V`: Venezolano.
-- `E`: Extranjero.
-- `DNI`: Otro documento.
+Ejemplo de petición:
 
-El tipo de documento no distingue mayúsculas de minúsculas, por ejemplo, puede enviar la petición así:
-
-```bash
-GET /api/v1/saime/v/00000000
+```http
+GET /api/v1/saime/v/12345678
 ```
 
-Donde `v` es el timpo de documento, que también puede ser `V` y `00000000` es el número de documento.
-
-
+> La API no distingue mayúsculas de minúsculas en el tipo de documento.
 
 ---
 
 ## Aplicaciones prácticas
 
-El uso de esta API tiene un amplio rango de aplicaciones en sistemas donde la verificación o el registro de datos personales es necesaria, tales como:
+Esta API facilita la integración y validación de identidad en sistemas donde los datos ciudadanos son críticos:
 
-* **Sistemas de registro médico:** validación automática de identidad para evitar duplicidad de historiales clínicos.
-* **Plataformas bancarias y financieras:** verificación de identidad en procesos de apertura de cuentas o solicitudes de crédito.
-* **Sistemas electorales o de participación ciudadana:** validación previa de los datos de los votantes o participantes.
-* **Sistemas educativos:** automatización del registro de estudiantes en universidades o instituciones públicas.
-* **Aplicaciones gubernamentales o municipales:** sincronización de bases de datos ciudadanas para trámites administrativos.
-* **Servicios privados y fintech:** validación de identidad y mitigación de fraude en línea.
+* **Registro médico:** evita duplicidad de historiales clínicos.
+* **Banca y fintech:** verificación rápida para apertura de cuentas y solicitudes de crédito.
+* **Sistemas educativos:** registro automático de estudiantes.
+* **Trámites gubernamentales y municipales:** sincronización confiable de bases de datos.
+* **Sistemas electorales o de participación ciudadana:** validación previa de votantes o participantes.
+
+> En general, cualquier sistema que requiera la verificación de identidad venezolana puede beneficiarse de esta API.
 
 ---
 
-## **Beneficios técnicos y operativos**
+## Beneficios clave
 
-* **Automatización completa del proceso de consulta.**
-  Evita la necesidad de manipular o interpretar manualmente los datos provenientes del SAIME.
+1. **Automatización completa:** sin necesidad de manipular datos manualmente.
+2. **Formato estándar JSON:** fácil integración con cualquier sistema backend o frontend.
+3. **Integración estable y versionada:** rutas `/api/v1/...` para mantener compatibilidad futura.
+4. **Reducción de errores humanos:** elimina la digitación manual de datos.
+5. **Optimizada para Venezuela:** garantiza precisión y coherencia con el formato oficial del SAIME.
 
-* **Estandarización de formato.**
-  Todos los resultados se devuelven en **JSON**, simplificando la interoperabilidad con cualquier sistema backend o frontend.
-
-* **Integración simple y versionada.**
-  Mediante rutas como `GET /api/v1/saime/:type/:document`, las aplicaciones pueden consumir datos de forma estable y mantenible en el tiempo.
-
-* **Reducción de errores humanos.**
-  Al eliminar la digitación manual de datos, se reducen los errores comunes en registros masivos.
-
-* **Diseñada exclusivamente para el contexto venezolano.**
-  La API está optimizada para el formato y estructura de datos del SAIME, asegurando coherencia y precisión.
+> Esta API está diseñada para el contexto venezolano, con posibilidad de expansión a otros países siempre que la legislación lo permita.
