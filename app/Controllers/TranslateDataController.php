@@ -29,21 +29,8 @@ final class TranslateDataController extends BaseController {
 
         $content = trim($content);
 
-        /** @var Parser $parser */
-        $parser = new Parser($content);
-        
         /** @var array<string,mixed> $data */
-        $data = [
-            "nationality" => $parser->get_value('Dregistro[letra]')?->value ?? "-",
-            "document" => $parser->get_value('Dregistro[num_cedula]')?->value ?? "-",
-            "firstname" => $parser->get_value('Dregistro[primernombre]')?->value ?? "-",
-            "middlename" => $parser->get_value('Dregistro[segundonombre]')?->value ?? "-",
-            "first_surname" => $parser->get_value('Dregistro[primerapellido]')?->value ?? "-",
-            "second_surname" => $parser->get_value('Dregistro[segundoapellido]')?->value ?? "-",
-            "birthdate" => $this->get_birth_date($parser->get_value('Dregistro[fecha_nac]')?->value ?? "-"),
-            "gender" => $this->get_gender($parser->get_value('Dregistro[sexo]')?->value ?? '-'),
-            "deceased" => $parser->get_value('deceased')?->deceased ?? false,
-        ];
+        $data = $this->get_data($content);
 
         return $data;
     }
@@ -107,5 +94,35 @@ final class TranslateDataController extends BaseController {
         $current_month = $months[$month] ?? "enero";
 
         return "{$day} de {$current_month} de {$year}";
+    }
+
+    /**
+     * Devuelve los datos solicitados por el cliente HTTP
+     * 
+     * @param string $content Contenido a ser analizar y convertido a formato JSON.
+     * @return array<string,mixed>
+     */
+    private function get_data(string $content): array {
+
+        /** @var boolean $cache Permite decidir si quiere almacenar en caché los datos */
+        $cache = boolval($this->get_input('cache'));
+
+        /** @var Parser $parser */
+        $parser = new Parser($content);
+        
+        /** @var array<string,mixed> $data */
+        $data = [
+            "nationality" => $parser->get_value('Dregistro[letra]')?->value ?? "-",
+            "document" => $parser->get_value('Dregistro[num_cedula]')?->value ?? "-",
+            "firstname" => $parser->get_value('Dregistro[primernombre]')?->value ?? "-",
+            "middlename" => $parser->get_value('Dregistro[segundonombre]')?->value ?? "-",
+            "first_surname" => $parser->get_value('Dregistro[primerapellido]')?->value ?? "-",
+            "second_surname" => $parser->get_value('Dregistro[segundoapellido]')?->value ?? "-",
+            "birthdate" => $this->get_birth_date($parser->get_value('Dregistro[fecha_nac]')?->value ?? "-"),
+            "gender" => $this->get_gender($parser->get_value('Dregistro[sexo]')?->value ?? '-'),
+            "deceased" => $parser->get_value('deceased')?->deceased ?? false,
+        ];
+
+        return $data;
     }
 }
