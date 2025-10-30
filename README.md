@@ -37,6 +37,15 @@ Ejemplo de respuesta:
 git clone git@github.com:dlunire/document-query.git
 ```
 
+Puede correr la API en su computadora para probarla, por ejemplo:
+
+```bash
+cd document-query
+php -S localhost:4000 -t public/
+```
+
+O directamente, instalarla en su servidor o hosting.
+
 ---
 
 ## Uso básico
