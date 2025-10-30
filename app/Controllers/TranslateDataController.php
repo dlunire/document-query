@@ -3,8 +3,11 @@
 namespace DLUnire\Controllers;
 
 use DLCore\Core\BaseController;
+use DLRoute\Requests\DLOutput;
 use DLUnire\Utilities\Parser;
 use DLUnire\Utilities\QuerySAIME;
+use DLUnire\Utilities\Storage;
+use Exception;
 
 /**
  * Permite convertir datos masivos en formato legible
@@ -12,11 +15,43 @@ use DLUnire\Utilities\QuerySAIME;
 final class TranslateDataController extends BaseController {
 
     /**
+     * Instancia del objeto de almacenamiento
+     * 
+     * @var Storage $storage
+     */
+    private Storage $storage;
+
+    /**
      * Devuelve el nombre a partir del número de documento
      * 
      * @param object{document:int, type: string} $params Parámetros de la petición
      */
     public function get_name(object $params): array {
+        $this->storage = new Storage();
+
+        /** @var array<string,mixed> $data */
+        $data = [];
+
+        /**
+         * Firma como nombre de archivo
+         * 
+         * @var string $signature
+         */
+        $signature = $this->get_signature($params);
+
+        /**
+         * Llave de entropía
+         * 
+         * @var string $entropy
+         */
+        $entropy = $this->get_entropy($params);
+
+        /** @var array $data */
+        $data = $this->get_raw_content($signature, $entropy);
+        
+        if (count($data) > 0) {
+            return $data;
+        }
 
         /** @var QuerySAIME $query */
         $query = new QuerySAIME();
@@ -28,11 +63,29 @@ final class TranslateDataController extends BaseController {
         );
 
         $content = trim($content);
-
-        /** @var array<string,mixed> $data */
-        $data = $this->get_data($content);
+        $data = $this->get_data($content, $signature, $entropy);
 
         return $data;
+    }
+
+    /**
+     * Devuelve la firma de archivo
+     * 
+     * @param object{type: string, document: int} $params Parámetros de la petición
+     * @return string
+     */
+    private function get_signature(object $params): string {
+        return hash('sha1', "{$params->type}{$params->document}");
+    }
+
+    /**
+     * Devuelve la llave de entropía con la que se cifrará el archivo.
+     * 
+     * @param object{type: string, document: int} $params Parámetros de la petición.
+     * @return string;
+     */
+    private function get_entropy(object $params): string {
+        return hash('sha256', $this->get_signature($params) . $params->type);
     }
 
     /**
@@ -75,6 +128,7 @@ final class TranslateDataController extends BaseController {
         /** @var string $year */
         $year = strval($parts[2]);
 
+        /** @var array<string,string> $months */
         $months = [
             "01" => "enero",
             "02" => "febrero",
@@ -100,16 +154,17 @@ final class TranslateDataController extends BaseController {
      * Devuelve los datos solicitados por el cliente HTTP
      * 
      * @param string $content Contenido a ser analizar y convertido a formato JSON.
+     * @param string $signature Firma de archivo.
+     * @param string $entropy Llave de entropía de cifrado.
      * @return array<string,mixed>
      */
-    private function get_data(string $content): array {
-
+    private function get_data(string $content, string $signature, string $entropy): array {
         /** @var boolean $cache Permite decidir si quiere almacenar en caché los datos */
         $cache = boolval($this->get_input('cache'));
 
         /** @var Parser $parser */
         $parser = new Parser($content);
-        
+
         /** @var array<string,mixed> $data */
         $data = [
             "nationality" => $parser->get_value('Dregistro[letra]')?->value ?? "-",
@@ -123,6 +178,32 @@ final class TranslateDataController extends BaseController {
             "deceased" => $parser->get_value('deceased')?->deceased ?? false,
         ];
 
+        if ($cache) {
+            $this->storage->save_data($signature, DLOutput::get_json($data, true), $entropy);
+        }
+
         return $data;
+    }
+
+    /**
+     * Devuelve el contenido crudo
+     * 
+     * @param string $signature Firma como nombre de archivo.
+     * @param string $entropy Llave de entropía con que ayudará a desbloquear el archivo.
+     * 
+     * @return array
+     */
+    private function get_raw_content(string $signature, string $entropy): array {
+        
+        /** @var string $content */
+        $content = "";
+        
+        try {
+            $content = $this->storage->read_storage_data($signature, $entropy);
+        } catch (Exception $error) {
+            return [];
+        }
+
+        return json_decode($content, true);
     }
 }
